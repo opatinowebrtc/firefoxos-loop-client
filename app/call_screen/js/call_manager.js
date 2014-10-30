@@ -1,6 +1,8 @@
 (function(exports) {
   'use strict';
 
+  var debug = Config.debug;
+
   var _perfDebug = Config.performanceLog.enabled;
   var _perfBranch = 'CallScreen';
 
@@ -16,6 +18,7 @@
   var _connectionTimeout;
   var _callProgressHelper = null;
   var _callee;
+  var _calleeJoined = false;
   var _isCalleeUnavailable = true;
   var _speakerManager;
   var _onhold = function noop() {};
@@ -36,7 +39,18 @@
   var _peersConnection = null;
   var _acm = navigator.mozAudioChannelManager;
 
+  // These strings will be found in SDP answer if H264 video codec is used
+  const H264_STRING_126 = 'a=rtpmap:126 H264';
+  const H264_STRING_97 = 'a=rtpmap:97 H264';
+  // This string will be found in SDP answer if VP8 video codec is used
+  const VP8_STRING = 'a=rtpmap:120 VP8';
+  // This string will be found in SDP answer if OPUS audio codec is used
+  const OPUS_STRING = 'a=rtpmap:109 opus';
+
   const TIMEOUT_SHIELD = 5000;
+
+  const MEAN_ELEMENTS = 16;
+  const TIME_INTERVAL_SECONDS = 3;
 
   /**
    * Send the signal given as the parameter to the remote party.
@@ -109,10 +123,11 @@
           CallScreenUI.setCallStatus('calling');
           return;
         }
-        
-        _perfDebug && PerfLog.log(_perfBranch,
-          'We send "accept" event through websocket');
-        callProgressHelper.accept();
+        if (_callee && _calleeJoined) {
+          _perfDebug && PerfLog.log(_perfBranch,
+            'We send "accept" event through websocket');
+          callProgressHelper.accept();
+        }
         break;
       case 'connecting':
         _perfDebug && PerfLog.log(_perfBranch,
@@ -180,6 +195,7 @@
         _callProgressHelper = null;
 
         if (!reason) {
+          _onpeercancel();
           return;
         }
         switch (reason) {
@@ -201,6 +217,7 @@
             _onpeerended();
             break;
           default:
+            _onpeercancel();
             break;
         }
         break;
@@ -246,14 +263,17 @@
 
       if (params.type === 'outgoing') {
         CallManager.join(params.video, params.frontCamera);
-      } else {
-        CallScreenUIMinified.updateIdentityInfo(params.identities);
       }
+
+      // Update contact name for incoming/outgoing calls. Outgoing calls because
+      // identities are retrieved from server for "loop-call" activities
+      var identities = params.identities;
+      identities && CallScreenUIMinified.updateIdentityInfo(identities);
     },
 
     toggleVideo: function(isVideoOn) {
       if (!_publisher) {
-        console.error('No publisher in this call');
+        debug && console.error('No publisher in this call');
         return;
       }
 
@@ -274,7 +294,7 @@
 
     toggleMic: function(isMicOn) {
       if (!_publisher) {
-        console.error('No publisher in this call');
+        debug && console.error('No publisher in this call');
         return;
       }
       _publisher.publishAudio(isMicOn);
@@ -400,20 +420,39 @@
               _perfDebug && PerfLog.log(_perfBranch,
                 'Received "loaded" event from remote stream');
               CallScreenUI.setCallStatus('connected');
+              if (_perfDebug) {
+                var meanFPS = 0;
+                var videoWidth = 640;
+                var videoHeight = 480;
+                var previousMozFrames = 0;
+                var remoteVideoContainer =
+                  document.getElementById('fullscreen-video');
+                var remoteVideoElement =
+                  remoteVideoContainer.querySelector('video');
+
+                if (remoteVideoElement) {
+                  window.setInterval(function () {
+                    var fps = (remoteVideoElement.mozPaintedFrames - previousMozFrames) / TIME_INTERVAL_SECONDS;
+                    // mean of the last 16 fps
+                    meanFPS = (meanFPS * (MEAN_ELEMENTS - 1) + fps) / MEAN_ELEMENTS;
+                    debug && console.log('fps = ' + meanFPS);
+
+                    // same with video width and height
+                    videoWidth = (videoWidth * (MEAN_ELEMENTS - 1) + remoteVideoElement.videoWidth) / MEAN_ELEMENTS;
+                    videoHeight = (videoHeight * (MEAN_ELEMENTS - 1) + remoteVideoElement.videoHeight) / MEAN_ELEMENTS;
+                    debug && console.log(
+                      'videoWidth = ' + remoteVideoElement.videoWidth + ', ' +
+                      'videoHeight = ' + remoteVideoElement.videoHeight
+                    );
+
+                    previousMozFrames = remoteVideoElement.mozPaintedFrames;
+                  }, TIME_INTERVAL_SECONDS * 1000);
+                }
+              }
               if (!_publisher.answerSDP) { return; }
               var videoCodecName;
               var audioCodecName;
               var description = _publisher.answerSDP;
-              //One of these strings will be found in SDP answer if H264 video
-              //codec is used
-              const H264_STRING_126 = 'a=rtpmap:126 H264';
-              const H264_STRING_97 = 'a=rtpmap:97 H264';
-              //This string will be found in SDP answer if VP8 video codec
-              //is used
-              const VP8_STRING = 'a=rtpmap:120 VP8';
-              //This string will be found in SDP answer if OPUS audio codec
-              //is used
-              const OPUS_STRING = 'a=rtpmap:109 opus';
               if (description.indexOf(H264_STRING_126) != -1 || 
                   description.indexOf(H264_STRING_97) != -1) {
                 videoCodecName = 'H264';
@@ -422,15 +461,13 @@
               } else {
                 videoCodecName = 'Unknown';
               }
-              console.debug && console.log("Video Codec used: " +
-                videoCodecName);
+              debug && console.log("Video Codec used: " + videoCodecName);
               if (description.indexOf(OPUS_STRING) != -1) {
                 audioCodecName = 'OPUS';
               } else {
                 audioCodecName = 'Unknown';
               }
-              console.debug && console.log("Audio Codec used: " +
-                audioCodecName);
+              debug && console.log("Audio Codec used: " + audioCodecName);
             }
           });
           _publishersInSession += 1;
@@ -468,7 +505,7 @@
       // Connect asap in order to publish the video
       _session.connect(_call.sessionToken, function(e) {
         if (e) {
-          console.log('Session connect error ' + e.message);
+          debug && console.log('Session connect error ' + e.message);
           return;
         }
 
@@ -489,7 +526,7 @@
           },
           function onPublish(ee) {
             if (ee) {
-              console.log('Session publish error ' + ee.message);
+              debug && console.log('Session publish error ' + ee.message);
             }
 
             // Once published we set the video properly according our setting
@@ -515,6 +552,9 @@
         });
       });
 
+      if (_callee) {
+        _calleeJoined = true;
+      }
 
       window.addEventListener('offline', _dispatchNetworkError);
       _handleCallProgress(_callProgressHelper);
@@ -591,7 +631,7 @@
           resolve();
         }
 
-        function _waitForInitialized() {
+        function _waitForInitialized(error) {
           var secureTimeout = setTimeout(
             function() {
               _resolvePromise(error);
@@ -608,6 +648,8 @@
           );
         }
 
+        _calleeJoined = false;
+
         if (_callProgressHelper) {
           if (_isCallManagerInitialized) {
             _resolvePromise(error);
@@ -622,7 +664,7 @@
         try {
           _session.disconnect();
         } catch(e) {
-          console.log('Session is not available to disconnect ' + e);
+          debug && console.log('Session is not available to disconnect ' + e);
         }
 
         if (AudioCompetingHelper) {
