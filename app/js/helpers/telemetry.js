@@ -33,8 +33,12 @@
   // We only care about cellular or wifi.
   const CALLS_WITH_CELLULAR = 'callsWithCellular';
   const CALLS_WITH_WIFI = 'callsWithWifi';
+  const AUDIO_CODEC = 'audioCodec';
+  const VIDEO_CODEC = 'videoCodec';
 
   const LAST_REPORT = 'telemetry-last-report';
+  
+  
 
   const THROTTLE_DELAY = 10 * 1000; // 10 sec
 
@@ -78,6 +82,8 @@
        this[type] = 0;
     });
     this[CALLS_DURATION] = [];
+    this[AUDIO_CODEC] = [];
+    this[VIDEO_CODEC] = [];
   }
 
   function Telemetry() {
@@ -113,7 +119,7 @@
           if (Array.isArray(report)) {
             report = report[0] || null;
           }
-
+          DEBUG && console.log('Toma reporte entero ' + report);
           self.transmit(report, _getReportUrl(report), THROTTLE_DELAY,
             function() {
               DEBUG && console.log('Setting ' + LAST_REPORT);
@@ -227,6 +233,20 @@
         return;
       }
       this._updateReport(CALLS_DURATION, duration);
+    }
+    
+    recordAudioCodec: function(audioCodec) {
+      if (audioCodec === undefined || audioCodec === null){
+        return;
+      }
+      this._updateReport(AUDIO_CODEC, audioCodec);
+    }
+
+    recordVideoCodec: function(videoCodec) {
+      if (videoCodec === undefined || videoCodec === null){
+        return;
+      }
+      this._updateReport(VIDEO_CODEC, videoCodec);
     }
 
   };

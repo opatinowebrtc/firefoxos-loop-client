@@ -50,7 +50,7 @@
   const TIMEOUT_SHIELD = 5000;
 
   const MEAN_ELEMENTS = 16;
-  const TIME_INTERVAL_SECONDS = 3;
+  const TIME_INTERVAL_SECONDS = 1;
 
   /**
    * Send the signal given as the parameter to the remote party.
@@ -443,8 +443,7 @@
                     debug && console.log(
                       'videoWidth = ' + remoteVideoElement.videoWidth + ', ' +
                       'videoHeight = ' + remoteVideoElement.videoHeight
-                    );
-
+                    );                    
                     previousMozFrames = remoteVideoElement.mozPaintedFrames;
                   }, TIME_INTERVAL_SECONDS * 1000);
                 }
@@ -462,12 +461,14 @@
                 videoCodecName = 'Unknown';
               }
               debug && console.log("Video Codec used: " + videoCodecName);
+              Telemetry.recordVideoCodec(videoCodecName);
               if (description.indexOf(OPUS_STRING) != -1) {
                 audioCodecName = 'OPUS';
               } else {
                 audioCodecName = 'Unknown';
               }
               debug && console.log("Audio Codec used: " + audioCodecName);
+              Telemetry.recordAudioCodec(audioCodecName);
             }
           });
           _publishersInSession += 1;
