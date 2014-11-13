@@ -2963,7 +2963,9 @@
 
   /* global OTHelpers */
 
-  if (!window.OT) window.OT = {};
+  if (!window.OT) window.OT = {
+    stats: {}
+  };
 
   // Bring OTHelpers in as OT.$
   OT.$ = OTHelpers.noConflict();
@@ -15803,10 +15805,10 @@ waitForDomReady();
          };
 
     peerConnection.getStats(null, function(stats) {
-
+      OT.stats = stats;
       for (var key in stats) {
-        if (stats.hasOwnProperty(key) &&
-          (stats[key].type === 'outboundrtp' || stats[key].type === 'inboundrtp')) {
+          if (stats.hasOwnProperty(key) &&
+            (stats[key].type === 'outboundrtp' || stats[key].type === 'inboundrtp')) {
 
           var res = stats[key];
 

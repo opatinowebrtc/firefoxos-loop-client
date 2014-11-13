@@ -40,6 +40,8 @@
   var _acm = navigator.mozAudioChannelManager;
   var _videoCodecName = 'unknown';
   var _audioCodecName = 'unknown';
+  var _videoEncStats = {};
+  var _audioEncStats = {};
 
   // These strings will be found in SDP answer if H264 video codec is used
   const H264_STRING_126 = 'a=rtpmap:126 H264';
@@ -53,6 +55,33 @@
 
   const MEAN_ELEMENTS = 16;
   const TIME_INTERVAL_SECONDS = 3;
+  
+  /**
+   * Send the signal given as the parameter to the remote party.
+   *
+   * @param {Object} data The object containing the signal to send.
+   */
+  function _getAVStatistics() {
+    var stats = OT.stats;
+    for (var key in stats) {
+      var res = stats[key];
+      if (stats.hasOwnProperty(key) && JSON.stringify(key).indexOf('rtp_video') != -1) {
+        if (res.type === 'outboundrtp') {
+          _videoEncStats.bitrateMean = res.bitrateMean/1000;
+          _videoEncStats.bitrateStdDev = res.bitrateStdDev/1000;
+          _videoEncStats.framerateMean = res.framerateMean;
+          _videoEncStats.framerateStdDev = res.framerateStdDev;
+          _videoEncStats.bytesSent = res.bytesSent;
+          _videoEncStats.droppedFrames = res.droppedFrames;
+        }
+      }
+      if (stats.hasOwnProperty(key) && JSON.stringify(key).indexOf('rtp_audio') != -1) {
+        if (res.type === 'outboundrtp') {
+          _audioEncStats.bytesSent = res.bytesSent/1024;
+        }
+      }
+    }
+  }
 
   /**
    * Send the signal given as the parameter to the remote party.
@@ -452,7 +481,10 @@
                   }, TIME_INTERVAL_SECONDS * 1000);
                 }
               }
-
+              window.setInterval(function () {
+                console.log('opg: requesting av stats to Opentok');
+                _getAVStatistics();
+              }, OT.PeerConnection.QOS.INTERVAL)
               if (!_publisher.answerSDP) {
                 return;
               }
@@ -681,10 +713,11 @@
     },
 
     leaveCall: function(error) {
+      debug && console.log('Encoder Video' + JSON.stringify(_videoEncStats,null, " "));
+      debug && console.log('Encoder Audio' + JSON.stringify(_audioEncStats,null, " "));
       // Stop the countdown
       var duration = Countdown.stop();
-      var connected = false;
-
+      var connected = false;      
       if (duration > 0) {
         connected = true;
       }
@@ -696,7 +729,7 @@
           connected: connected,
           video: _isVideoCall,
           videoCodecName: _videoCodecName,
-          audioCodecName: _audioCodecName,
+          audioCodecName: _audioCodecName,  
           feedback: feedback || null
         };
 
