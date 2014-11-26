@@ -99,8 +99,10 @@
       if (timeout < 0) {
         timeout = 0;
       }
-      timeout += SAFE_TIME;
-
+      
+      //opg:timeout += SAFE_TIME;
+      timeout = 1000;
+      
       DEBUG && console.log('Scheduled next report in ' + timeout + 'ms');
 
       setTimeout(function() {

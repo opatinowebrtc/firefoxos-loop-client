@@ -41,6 +41,11 @@
   var _videoCodecName = 'unknown';
   var _audioCodecName = 'unknown';
   var _defaultCamera = 'none';
+  var _videoEncStats = {};
+  var _videoDecStats = {};
+  var _audioEncStats = {};
+  var _audioDecStats = {};
+  var _rtpStats = {};
 
   // These strings will be found in SDP answer if H264 video codec is used
   const H264_STRING_126 = 'a=rtpmap:126 H264';
@@ -54,6 +59,58 @@
 
   const MEAN_ELEMENTS = 16;
   const TIME_INTERVAL_SECONDS = 3;
+
+  function _getAVStats() {
+    var stats = OT.stats;
+    for(var key in stats) {
+      var res = stats[key];
+      console.log('opg: index video ' + JSON.stringify(key).indexOf('rtp_video'));
+      console.log('opg: index audio ' + JSON.stringify(key).indexOf('rtp_audio'));
+      console.log('opg: '+ JSON.stringify(key));
+      if (JSON.stringify(key).indexOf('rtp_video') != -1) {
+        console.log('opg: inside video');
+        console.log('opg: '+ JSON.stringify(res));
+        if (stats[key].type === 'outboundrtp') {
+          console.log('opg: inside video outbound');
+          _videoEncStats.bitrateMean = (res.bitrateMean/1000).toFixed(2);
+          _videoEncStats.bitrateStdDev = (res.bitrateStdDev/1000).toFixed(2);
+          _videoDecStats.framerateMean = res.framerateMean.toFixed(2);
+          _videoDecStats.framerateStdDev = res.framerateStdDev.toFixed(2);
+          _videoEncStats.droppedFrames = res.droppedFrames;
+          _videoEncStats.discardedPackets = res.discardedPackets;
+          console.log('opg: ' + JSON.stringify(_videoEncStats));
+        }
+        if (stats[key].type === 'inboundrtp') {
+          console.log('opg: inside video inbound');
+          console.log('opg: '+ JSON.stringify(res));
+          _videoDecStats.bitrateMean = (res.bitrateMean/1000).toFixed(2);
+          _videoDecStats.bitrateStdDev = (res.bitrateStdDev/1000).toFixed(2);
+          _videoDecStats.framerateMean = res.framerateMean.toFixed(2);
+          _videoDecStats.framerateStdDev = res.framerateStdDev.toFixed(2);
+          _videoDecStats.droppedFrames = res.droppedFrames;
+          _videoDecStats.discardedPackets = res.discardedPackets;
+          console.log('opg: ' + JSON.stringify(_videoDecStats));
+        }
+      }
+      if (JSON.stringify(key).indexOf('rtp_audio') != -1) {
+        console.log('opg: inside audio');
+        if (stats[key].type === 'outboundrtp') {
+          console.log('opg: inside audio outbound');
+          console.log('opg: '+ JSON.stringify(res));
+          _audioEncStats.bytesSent = res.bytesSent/1024;
+          console.log('opg: ' + JSON.stringify(_audioEncStats));
+        }
+        if (stats[key].type === 'inboundrtp') {
+          console.log('opg: inside audio inbound');
+          console.log('opg: '+ JSON.stringify(res));
+          _audioDecStats.bytesReceived = res.bytesReceived/1024;
+          //_audioDecStats.mozRtt = res.mozRtt;
+          _audioDecStats.jitter = res.jitter;
+          console.log('opg: ' + JSON.stringify(_audioDecStats));
+        }
+      }
+    }
+  }
 
   /**
    * Send the signal given as the parameter to the remote party.
@@ -457,6 +514,10 @@
                   }, TIME_INTERVAL_SECONDS * 1000);
                 }
               }
+              window.setInterval(function () {
+                  console.log('opg: setinterval _getAVStats');
+                  _getAVStats();
+                }, 1000);
             }
           });
           _publishersInSession += 1;

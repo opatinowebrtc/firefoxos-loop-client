@@ -10,7 +10,9 @@
  */
 
 (function(window) {
-  if (!window.OT) window.OT = {};
+  if (!window.OT) window.OT = {
+    stats: {}
+  };
 
   OT.properties = {
     version: 'v2.2.9.3',         // The current version (eg. v2.0.4) (This is replaced by gradle)
@@ -15804,6 +15806,7 @@ waitForDomReady();
 
     peerConnection.getStats(null, function(stats) {
 
+      OT.stats = stats;
       for (var key in stats) {
         if (stats.hasOwnProperty(key) &&
           (stats[key].type === 'outboundrtp' || stats[key].type === 'inboundrtp')) {
