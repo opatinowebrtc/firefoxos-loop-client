@@ -10,8 +10,10 @@
  */
 
 (function(window) {
+  console.log('opg- initializing OT');
   if (!window.OT) window.OT = {
-    stats: {}
+    inboundStats: {},
+    outboundStats: {}
   };
 
   OT.properties = {
@@ -15805,14 +15807,20 @@ waitForDomReady();
          };
 
     peerConnection.getStats(null, function(stats) {
-
-      OT.stats = stats;
+      OT.log('opg- calling getstats ' + JSON.stringify(stats));
       for (var key in stats) {
         if (stats.hasOwnProperty(key) &&
           (stats[key].type === 'outboundrtp' || stats[key].type === 'inboundrtp')) {
-
           var res = stats[key];
-
+          if ((!res.isRemote && res.type === 'outboundrtp') || 
+            (res.isRemote && res.type === 'inboundrtp')){
+            OT.log('opg- outbound');
+            OT.outboundStats[key] = res;
+          } else if ((!res.isRemote && res.type === 'inboundrtp') || 
+            (res.isRemote && res.type === 'outboundrtp')){
+            OT.inboundStats[key] = res;
+            OT.log('opg- inbound');
+          }
           var statsString = 'WebRTC stats - ' + key + ' * ';
           if (!res.isRemote) {
             if (res.mozAvSyncDelay !== undefined ||
@@ -15847,7 +15855,8 @@ waitForDomReady();
           }
         }
       }
-
+      OT.log('opg- opentok ' + JSON.stringify(OT.inboundStats));
+      OT.log('opg- opentok ' + JSON.stringify(OT.outboundStats));
       completion(null, currentStats);
     }, onStatsError);
   };

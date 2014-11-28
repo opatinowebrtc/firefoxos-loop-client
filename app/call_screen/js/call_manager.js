@@ -43,6 +43,8 @@
   var _defaultCamera = 'none';
   var _videoEncStats = {};
   var _videoDecStats = {};
+  var _rtpInbound = {};
+  var _rtpOutbound = {};
   var _audioEncStats = {};
   var _audioDecStats = {};
   var _rtpStats = {};
@@ -60,56 +62,133 @@
   const MEAN_ELEMENTS = 16;
   const TIME_INTERVAL_SECONDS = 3;
 
-  function _getAVStats() {
-    var stats = OT.stats;
-    for(var key in stats) {
-      var res = stats[key];
-      console.log('opg: index video ' + JSON.stringify(key).indexOf('rtp_video'));
-      console.log('opg: index audio ' + JSON.stringify(key).indexOf('rtp_audio'));
-      console.log('opg: '+ JSON.stringify(key));
-      if (JSON.stringify(key).indexOf('rtp_video') != -1) {
-        console.log('opg: inside video');
-        console.log('opg: '+ JSON.stringify(res));
-        if (stats[key].type === 'outboundrtp') {
-          console.log('opg: inside video outbound');
-          _videoEncStats.bitrateMean = (res.bitrateMean/1000).toFixed(2);
-          _videoEncStats.bitrateStdDev = (res.bitrateStdDev/1000).toFixed(2);
-          _videoDecStats.framerateMean = res.framerateMean.toFixed(2);
-          _videoDecStats.framerateStdDev = res.framerateStdDev.toFixed(2);
-          _videoEncStats.droppedFrames = res.droppedFrames;
-          _videoEncStats.discardedPackets = res.discardedPackets;
-          console.log('opg: ' + JSON.stringify(_videoEncStats));
+
+  function dumpRtpStats(stat) {
+    //console.log('opg- ' + JSON.stringify(stat));
+    if (stat.type === 'inboundrtp') {
+      _rtpInbound.ssrc = stat.ssrc;
+      if (stat.packetsReceived !== undefined) {
+        _rtpInbound.packetsReceived = stat.packetsReceived;
+        if (stat.bytesReceived !== undefined) {
+          _rtpInbound.bytesReceived = stat.bytesReceived/1024;
         }
-        if (stats[key].type === 'inboundrtp') {
-          console.log('opg: inside video inbound');
-          console.log('opg: '+ JSON.stringify(res));
-          _videoDecStats.bitrateMean = (res.bitrateMean/1000).toFixed(2);
-          _videoDecStats.bitrateStdDev = (res.bitrateStdDev/1000).toFixed(2);
-          _videoDecStats.framerateMean = res.framerateMean.toFixed(2);
-          _videoDecStats.framerateStdDev = res.framerateStdDev.toFixed(2);
-          _videoDecStats.droppedFrames = res.droppedFrames;
-          _videoDecStats.discardedPackets = res.discardedPackets;
-          console.log('opg: ' + JSON.stringify(_videoDecStats));
+        _rtpInbound.packetsLost = stat.packetsLost;
+        _rtpInbound.jitter = stat.jitter;
+        if (stat.mozRtt !== undefined) {
+          _rtpInbound.mozRtt = stat.mozRtt;
+        }
+      } else if (stat.packetsSent !== undefined) {
+        _rtpInbound.packetsSent = stat.packetsSent;
+        if (stat.bytesSent !== undefined) {
+          _rtpInbound.bytesSent = stat.bytesSent/1024;
         }
       }
-      if (JSON.stringify(key).indexOf('rtp_audio') != -1) {
-        console.log('opg: inside audio');
-        if (stats[key].type === 'outboundrtp') {
-          console.log('opg: inside audio outbound');
-          console.log('opg: '+ JSON.stringify(res));
-          _audioEncStats.bytesSent = res.bytesSent/1024;
-          console.log('opg: ' + JSON.stringify(_audioEncStats));
+    } else if (stat.type === 'outboundrtp') {
+      _rtpOutbound.ssrc = stat.ssrc;
+      if (stat.packetsReceived !== undefined) {
+        _rtpOutbound.packetsReceived = stat.packetsReceived;
+        if (stat.bytesReceived !== undefined) {
+          _rtpOutbound.bytesReceived = stat.bytesReceived/1024;
         }
-        if (stats[key].type === 'inboundrtp') {
-          console.log('opg: inside audio inbound');
-          console.log('opg: '+ JSON.stringify(res));
-          _audioDecStats.bytesReceived = res.bytesReceived/1024;
-          //_audioDecStats.mozRtt = res.mozRtt;
-          _audioDecStats.jitter = res.jitter;
-          console.log('opg: ' + JSON.stringify(_audioDecStats));
+        _rtpOutbound.packetsLost = stat.packetsLost;
+        _rtpOutbound.jitter = stat.jitter;
+        if (stat.mozRtt !== undefined) {
+          _rtpOutbound.mozRtt = stat.mozRtt;
+        }
+      } else if (stat.packetsSent !== undefined) {
+        _rtpOutbound.packetsSent = stat.packetsSent;
+        if (stat.bytesSent !== undefined) {
+          _rtpOutbound.bytesSent = stat.bytesSent/1024;
         }
       }
     }
+  }
+
+  // dumpAvStat = function dumpAvStat(stat) {
+  //   var statsString = '';
+  //   if (stat.mozAvSyncDelay !== undefined) {
+  //     statsString += "A/V sync: " + stat.mozAvSyncDelay + " ms ";
+  //   }
+  //   if (stat.mozJitterBufferDelay !== undefined) {
+  //     statsString += "Jitter-buffer delay: " + stat.mozJitterBufferDelay + " ms";
+  //   }
+  //   return statsString;
+  // }
+
+  function dumpCoderStat(res) {
+    //console.log('opg- ' + JSON.stringify(res));
+    if (res.id.indexOf('video') != -1) {
+      if (res.bitrateMean !== undefined ||
+          res.framerateMean !== undefined ||
+          res.droppedFrames !== undefined ||
+          res.discardedPackets !== undefined) {
+        if (res.packetsReceived !== undefined){
+          //" Decoder:"
+          if (res.bitrateMean !== undefined) {
+            _videoDecStats.bitrateMean = (res.bitrateMean/1000000).toFixed(2);
+          }
+          if (res.bitrateStdDev !== undefined) {
+            _videoDecStats.bitrateStdDev = (res.bitrateStdDev/1000000).toFixed(2);
+          }
+          if (res.framerateMean !== undefined) {
+            _videoDecStats.framerateMean = (res.framerateMean).toFixed(2);
+            if (res.framerateStdDev !== undefined) {
+              _videoDecStats.framerateStdDev = res.framerateStdDev.toFixed(2);
+            }
+          }
+          if (res.droppedFrames !== undefined) {
+            _videoDecStats.droppedFrames = res.droppedFrames;
+          }
+          if (res.discardedPackets !== undefined) {
+            _videoDecStats.discardedPackets = res.discardedPackets;
+          }
+        } else {
+          //" Encoder:";
+          if (res.bitrateMean !== undefined) {
+            _videoEncStats.bitrateMean = (res.bitrateMean/1000000).toFixed(2);
+          }
+          if (res.bitrateStdDev !== undefined) {
+            _videoEncStats.bitrateStdDev = (res.bitrateStdDev/1000000).toFixed(2);
+          }
+          if (res.framerateMean !== undefined) {
+            _videoEncStats.framerateMean = (res.framerateMean).toFixed(2);
+            if (res.framerateStdDev !== undefined) {
+              _videoEncStats.framerateStdDev = res.framerateStdDev.toFixed(2);
+            }
+          }
+          if (res.droppedFrames !== undefined) {
+            _videoEncStats.droppedFrames = res.droppedFrames;
+          }
+          if (res.discardedPackets !== undefined) {
+            _videoEncStats.discardedPackets = res.discardedPackets;
+          }
+        }
+      }
+    }
+    // audio here
+  }
+
+  function _getAVStats(stats) {
+    for (var key in stats) {
+      if (stats.hasOwnProperty(key) &&
+        (stats[key].type === 'outboundrtp' || stats[key].type === 'inboundrtp')) {
+        var res = stats[key];
+        // if (!res.isRemote) {
+        //   if (res.mozAvSyncDelay !== undefined ||
+        //       res.mozJitterBufferDelay !== undefined) {
+        //     dumpAvStat(res);
+        //   }
+        // }
+        dumpCoderStat(res);
+        if (res.remoteId) {
+          dumpRtpStats(stats[res.remoteId], 'Remote');
+        }
+      }
+    }
+    console.log('opg: _videoenc ' + JSON.stringify(_videoEncStats));
+    console.log('opg: _videodec ' + JSON.stringify(_videoDecStats));
+    console.log('opg: _rtpin ' + JSON.stringify(_rtpInbound));
+    console.log('opg: _rtpout ' + JSON.stringify(_rtpOutbound));
   }
 
   /**
@@ -515,9 +594,14 @@
                 }
               }
               window.setInterval(function () {
-                  console.log('opg: setinterval _getAVStats');
-                  _getAVStats();
-                }, 1000);
+                  console.log('opg- setinterval _getAVStats');
+                  console.log(JSON.stringify(OT.inboundStats));
+                  console.log('opg- setinterval _getAVStats');
+                  console.log(JSON.stringify(OT.outboundStats));
+                  _getAVStats(OT.inboundStats);
+                  
+                  _getAVStats(OT.outboundStats);
+                }, 10000);
             }
           });
           _publishersInSession += 1;
