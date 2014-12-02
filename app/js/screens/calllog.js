@@ -208,6 +208,10 @@
               isVideo = Settings.isVideoDefault;
             }
             callTo(identities, element.dataset.subject, isVideo);
+            console.log('opg: updating origin calllog');
+            Controller.updateConversationInfo('origin','Calllog');
+            Telemetry.updateReport('callsFromCallLog');
+
           },
           params: [identities]
         }
@@ -965,6 +969,9 @@
           isVideo = Settings.isVideoDefault;
         }
         callTo(identities, callElement.dataset.subject, isVideo);
+        console.log('opg: updating origin calllog');
+        Controller.updateConversationInfo('origin','Calllog');
+        Telemetry.updateReport('callsFromCallLog');
       }
     );
 

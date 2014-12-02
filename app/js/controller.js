@@ -5,6 +5,14 @@
 
   var _identity;
 
+  var _conversationInfo = {
+    sharedVia: {},
+    origin: {},
+    url: {},
+    result: false,
+    startedOnThisSide: false
+  };
+
   const TELEMETRY_DICTIONARY = {
     'fxa': 'FxA',
     'msisdn': 'MobileId',
@@ -242,6 +250,19 @@
       });
     },
 
+    updateConversationInfo: function(member, value) {
+      _conversationInfo[member] = value;
+      console.log('opg: ' + JSON.stringify(_conversationInfo));
+    },
+
+    // clearConversationInfo: function() {
+    //   console.log('opg: clearing conversation');
+    //   for (param in _conversationInfo) {
+    //     _conversationInfo[param] = {};
+    //   }
+    //   console.log('opg: conversation cleared ' + JSON.stringify(_conversationInfo));
+    // },
+
     /**
      * Handle the simple push notifications the device receives when there is a
      * change in any of my rooms (If you are not the owner of the room you will
@@ -433,7 +454,10 @@
       });
 
       activity.onsuccess = function() {
+        console.log('opg: call from contact picker')
+        updateConversationInfo('origin', 'contact_picker');
         onsuccess(activity.result);
+        console.log('opg: ' + JSON.stringify(_conversationInfo));
       };
       activity.onerror = onerror;
     },
@@ -606,6 +630,10 @@
             if (params.type === 'call') {
               _onsharedurl();
             }
+            console.log('opg: setting url to SMS');
+            Controller.updateConversationInfo('sharedVia', 'SMS');
+            Controller.updateConversationInfo('url', params.url);
+            Controller.updateConversationInfo('startedOnThisSide', true);
             onsuccess();
           },
           onerror
@@ -637,6 +665,9 @@
             if (params.type === 'call') {
               _onsharedurl();
             }
+            Controller.updateConversationInfo('sharedVia', 'Mail');
+            Controller.updateConversationInfo('url', params.url);
+            Controller.updateConversationInfo('startedOnThisSide', true);
             onsuccess();
           },
           onerror
