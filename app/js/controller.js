@@ -5,14 +5,6 @@
 
   var _identity;
 
-  var _conversationInfo = {
-    sharedVia: {},
-    origin: {},
-    url: {},
-    result: false,
-    startedOnThisSide: false
-  };
-
   const TELEMETRY_DICTIONARY = {
     'fxa': 'FxA',
     'msisdn': 'MobileId',
@@ -196,6 +188,15 @@
   var _;
 
   var Controller = {
+    conversationInfo: {
+      sharedVia: {},
+      origin: {},
+      url: {},
+      conversationPending: false,
+      incoming: false,
+      contactID: {}
+    },
+
     init: function () {
 
       _ = navigator.mozL10n.get;
@@ -251,8 +252,8 @@
     },
 
     updateConversationInfo: function(member, value) {
-      _conversationInfo[member] = value;
-      console.log('opg: ' + JSON.stringify(_conversationInfo));
+      this.conversationInfo[member] = value;
+      console.log('opg: ' + JSON.stringify(this.conversationInfo));
     },
 
     // clearConversationInfo: function() {
@@ -455,9 +456,10 @@
 
       activity.onsuccess = function() {
         console.log('opg: call from contact picker')
-        updateConversationInfo('origin', 'contact_picker');
+        Controller.updateConversationInfo('origin', 'contact_picker');
+        Controller.updateConversationInfo('contactID', activity.result);
         onsuccess(activity.result);
-        console.log('opg: ' + JSON.stringify(_conversationInfo));
+        console.log('opg: ' + JSON.stringify(Controller.conversationInfo));
       };
       activity.onerror = onerror;
     },
@@ -633,7 +635,10 @@
             console.log('opg: setting url to SMS');
             Controller.updateConversationInfo('sharedVia', 'SMS');
             Controller.updateConversationInfo('url', params.url);
-            Controller.updateConversationInfo('startedOnThisSide', true);
+            Controller.updateConversationInfo('incoming', false);
+            Controller.updateConversationInfo('conversationPending', true);
+            Telemetry.updateReport('UrlSMS');
+            //conversationDB.addConversation(function() {}, conversation, conversationInfo);
             onsuccess();
           },
           onerror
@@ -667,7 +672,10 @@
             }
             Controller.updateConversationInfo('sharedVia', 'Mail');
             Controller.updateConversationInfo('url', params.url);
-            Controller.updateConversationInfo('startedOnThisSide', true);
+            Controller.updateConversationInfo('incoming', false);
+            Controller.updateConversationInfo('conversationPending', true);
+            Telemetry.updateReport('UrlEmail');
+            //conversationDB.addConversation(function() {}, conversation, conversationInfo);
             onsuccess();
           },
           onerror

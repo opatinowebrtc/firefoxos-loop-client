@@ -545,7 +545,16 @@
 
     invalidateContactsCache: function(aCallback) {
       _invalidateContactsCache(aCallback);
-    }
+    },
+
+    updatePendingConversation: function(aCallback, aToken) {
+      _dbHelper.updateRecord(aCallback, _dbUrlStore, {
+        index: {
+          name: 'urlToken',
+          value: aToken
+        }
+      }, { conversationPending: false });
+    },
 
   };
 

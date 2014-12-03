@@ -77,7 +77,11 @@
     audioCodecName: [],
     videoCodecName: [],
     defaultCamera: [],
-    usedCamera: []
+    usedCamera: [],
+    UrlSMS: 0,
+    UrlEmail: 0,
+    ContactAddressBook: 0,
+    incomingCallURL: 0
   };
 
   function Telemetry() {
