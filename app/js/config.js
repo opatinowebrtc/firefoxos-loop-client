@@ -15,7 +15,7 @@ Config = {
   // end
   // cfg metrics
   metrics: {
-    enabled: true,
+    enabled: false,
     feedback: {
       serverUrl: 'https://input.allizom.org/api/v1/feedback'
     },

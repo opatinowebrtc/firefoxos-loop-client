@@ -201,6 +201,9 @@
                                  'front' : 'back');
           Telemetry.updateReport('usedCamera',
                                  callscreenParams.usedCamera);
+          if (_params.subject && _params_subject != '') {
+            Telemetry.updateReport('conversationSubject');
+          }
           break;
       }
     } catch(e) {}

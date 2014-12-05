@@ -81,7 +81,8 @@
     UrlSMS: 0,
     UrlEmail: 0,
     ContactAddressBook: 0,
-    incomingCallURL: 0
+    incomingCallURL: 0,
+    conversationSubject: 0
   };
 
   function Telemetry() {
