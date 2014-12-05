@@ -201,6 +201,8 @@
                                  'front' : 'back');
           Telemetry.updateReport('usedCamera',
                                  callscreenParams.usedCamera);
+                                 callscreenParams.defaultCamera);
+          console.log('opg: subject: ' + _params.subject);
           if (_params.subject && _params_subject != '') {
             Telemetry.updateReport('conversationSubject');
           }
