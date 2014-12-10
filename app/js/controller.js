@@ -457,9 +457,8 @@
       activity.onsuccess = function() {
         console.log('opg: call from contact picker')
         Controller.updateConversationInfo('origin', 'contact_picker');
-        Controller.updateConversationInfo('contactID', activity.result);
+        Controller.updateConversationInfo('contactID', activity.result.id);
         onsuccess(activity.result);
-        console.log('opg: ' + JSON.stringify(Controller.conversationInfo));
       };
       activity.onerror = onerror;
     },
@@ -637,8 +636,10 @@
             Controller.updateConversationInfo('url', params.url);
             Controller.updateConversationInfo('incoming', false);
             Controller.updateConversationInfo('conversationPending', true);
+
             Telemetry.updateReport('UrlSMS');
-            //conversationDB.addConversation(function() {}, conversation, conversationInfo);
+            var p1 = ConversationsDB.add(Controller.conversationInfo);
+            p1.then(function (){console.log('opg: saved conversation in db')});
             onsuccess();
           },
           onerror
@@ -675,7 +676,8 @@
             Controller.updateConversationInfo('incoming', false);
             Controller.updateConversationInfo('conversationPending', true);
             Telemetry.updateReport('UrlEmail');
-            //conversationDB.addConversation(function() {}, conversation, conversationInfo);
+            var p1 = ConversationsDB.add(Controller.conversationInfo);
+            p1.then(function (){console.log('saved conversation in ConversationsDB')});
             onsuccess();
           },
           onerror

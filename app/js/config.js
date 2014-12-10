@@ -26,7 +26,7 @@ Config = {
   // end
   // This parameters defaults to false
   // (don't allow unsecure connections) if undefined
-  allowUnsecure: false,
+  allowUnsecure: true,
   offline: {
     signInDelay: 60 * 1000, // 1 min
     maxSignInAttempts: 3 // Max number of sign in attempts before logging out.

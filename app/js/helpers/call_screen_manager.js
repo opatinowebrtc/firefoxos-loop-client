@@ -177,7 +177,7 @@
             subject: _params.subject || ''
           };
           // opg: here i must find all conversations with same destination
-          // and remove them all TODO: fix line bellow
+          // and remove them all TODO: fix line below
           // Add object & update the UI
           ContactsHelper.find({
             identities: _params.identities

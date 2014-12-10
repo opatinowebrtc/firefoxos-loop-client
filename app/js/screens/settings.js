@@ -39,7 +39,6 @@
   };
 
   var _settingValues = {};
-
   function _setVisualSettingValues() {
     _videoDefaultSettings.value = _settingValues.video;
     _cameraDefaultSettings.value = _settingValues.frontCamera;
