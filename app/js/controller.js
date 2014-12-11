@@ -632,14 +632,25 @@
               _onsharedurl();
             }
             console.log('opg: setting url to SMS');
-            Controller.updateConversationInfo('sharedVia', 'SMS');
-            Controller.updateConversationInfo('url', params.url);
-            Controller.updateConversationInfo('incoming', false);
-            Controller.updateConversationInfo('conversationPending', true);
-
+            
             Telemetry.updateReport('sendUrlBySMS');
-            var p1 = ConversationsDB.add(Controller.conversationInfo);
-            p1.then(function (){console.log('opg: saved conversation in db')});
+            var p0 = ConversationsDB.get(params.contactID);
+            p0.then((result) => {
+              console.log('opg: antigua conversacion ' + 
+                JSON.stringify(Controller.conversationInfo, null, " "));
+              Controller.conversationInfo = result;
+              Controller.updateConversationInfo('sharedVia', 'SMS');
+              Controller.updateConversationInfo('url', params.url);
+              Controller.updateConversationInfo('incoming', false);
+              Controller.updateConversationInfo('conversationPending', true);
+              Controller.updateConversationInfo('subject', params.subject &&
+                params.subject !== '' ? true : false);
+              var p1 = ConversationsDB.add(Controller.conversationInfo);
+              p1.then(function (){console.log('opg: saved conversation in db')});
+            });
+            p0 = ConversationsDB.get(params.contactID);
+            p0.then(function(result){ console.log('opg: nueva conversacion ' + 
+              JSON.stringify(result, null, " "));});
             onsuccess();
           },
           onerror
@@ -670,14 +681,25 @@
           function onSent() {
             if (params.type === 'call') {
               _onsharedurl();
-            }
-            Controller.updateConversationInfo('sharedVia', 'Mail');
-            Controller.updateConversationInfo('url', params.url);
-            Controller.updateConversationInfo('incoming', false);
-            Controller.updateConversationInfo('conversationPending', true);
+            }            
             Telemetry.updateReport('sendUrlByEmail');
-            var p1 = ConversationsDB.add(Controller.conversationInfo);
-            p1.then(function (){console.log('saved conversation in ConversationsDB')});
+            var p0 = ConversationsDB.get(params.contactID);
+            p0.then((result) => {
+              console.log('opg: antigua conversacion ' + 
+                JSON.stringify(Controller.conversationInfo, null, " "));
+              Controller.conversationInfo = result;
+              Controller.updateConversationInfo('sharedVia', 'SMS');
+              Controller.updateConversationInfo('url', params.url);
+              Controller.updateConversationInfo('incoming', false);
+              Controller.updateConversationInfo('conversationPending', true);
+              Controller.updateConversationInfo('subject', params.subject &&
+                params.subject !== '' ? true : false);
+              var p1 = ConversationsDB.add(Controller.conversationInfo);
+              p1.then(function (){console.log('opg: saved conversation in db')});
+            });
+            p0 = ConversationsDB.get(params.contactID);
+            p0.then(function(result){ console.log('opg: nueva conversacion ' + 
+              JSON.stringify(result, null, " "));});
             onsuccess();
           },
           onerror

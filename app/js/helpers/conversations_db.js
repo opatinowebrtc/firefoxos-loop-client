@@ -8,7 +8,7 @@
 	    numOfRecordsToDelete: 50
 	  }, {
 	    'infoCalls': {
-	      primary: 'url',
+	      primary: 'contactID',
 	      indexes: [{
 	        name: 'conversationPending',
 	        field: 'conversationPending',
@@ -16,8 +16,8 @@
 	          multientry: true
 	        }
 	      }, {
-	        name: 'contactId',
-	        field: 'contactId',
+	        name: 'url',
+	        field: 'url',
 	        params: {
 	          multientry: true
 	        }
@@ -25,11 +25,13 @@
 	      fields: [
 	        'date',
 	        'url',
-          'contactId',
+          'contactID',
 	        'origin',
 	        'sharedVia',
-	        'conversationPending'
-	      ]
+	        'conversationPending',
+          'incoming',
+          'subject'
+        ]
 	    },
 	});
 
@@ -50,7 +52,7 @@
       });
     },
     get: function(token) {
-      return new Promise(function(resolve, rejet){
+      return new Promise(function(resolve, reject){
         _dbHelper.getRecord(function(error, result) {
           if (error) {
             reject(error);
