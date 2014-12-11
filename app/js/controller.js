@@ -637,7 +637,7 @@
             Controller.updateConversationInfo('incoming', false);
             Controller.updateConversationInfo('conversationPending', true);
 
-            Telemetry.updateReport('UrlSMS');
+            Telemetry.updateReport('sendUrlBySMS');
             var p1 = ConversationsDB.add(Controller.conversationInfo);
             p1.then(function (){console.log('opg: saved conversation in db')});
             onsuccess();
@@ -675,7 +675,7 @@
             Controller.updateConversationInfo('url', params.url);
             Controller.updateConversationInfo('incoming', false);
             Controller.updateConversationInfo('conversationPending', true);
-            Telemetry.updateReport('UrlEmail');
+            Telemetry.updateReport('sendUrlByEmail');
             var p1 = ConversationsDB.add(Controller.conversationInfo);
             p1.then(function (){console.log('saved conversation in ConversationsDB')});
             onsuccess();

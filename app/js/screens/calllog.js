@@ -526,7 +526,7 @@
         duration: durationPretty,
         subject: subject
       });
-      Telemetry.updateReport('incomingCallURL')
+      Telemetry.updateReport('incomingCallUrl')
     }
     return callElement;
   }

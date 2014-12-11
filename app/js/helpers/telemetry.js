@@ -78,10 +78,9 @@
     videoCodecName: [],
     defaultCamera: [],
     usedCamera: [],
-    UrlSMS: 0,
-    UrlEmail: 0,
-    ContactAddressBook: 0,
-    incomingCallURL: 0,
+    sendUrlBySMS: 0,
+    sendUrlByEmail: 0,
+    incomingCallUrl: 0,
     conversationSubject: 0
   };
 
