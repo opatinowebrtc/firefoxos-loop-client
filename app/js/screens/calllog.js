@@ -984,6 +984,7 @@
                Controller.updateConversationInfo('url', 'none')
                Controller.updateConversationInfo('conversationPending', true);
                Controller.updateConversationInfo('contactID','E30F991CB');
+               Controller.updateConversationInfo('date', 42342959);
               var p1 = ConversationsDB.add(Controller.conversationInfo);
               p1.then(function (){console.log('opg: saved conversation in db')});
             }
