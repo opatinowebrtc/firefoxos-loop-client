@@ -8,10 +8,10 @@
 	    numOfRecordsToDelete: 50
 	  }, {
 	    'infoCalls': {
-	      primary: 'date',
+	      primary: 'email',
 	      indexes: [{
-	        name: 'contactID',
-	        field: 'contactID',
+	        name: 'date',
+	        field: 'date',
 	        params: {
 	          multientry: true
 	        }
@@ -25,7 +25,7 @@
 	      fields: [
 	        'date',
 	        'url',
-          'contactID',
+          'email',
 	        'origin',
 	        'sharedVia',
 	        'conversationPending',
@@ -35,40 +35,14 @@
 	    },
 	});
 
-  function _updateConversation(conversation) {
-    var objectStore = _callStore;
-    var _updateConv = function(event) {
-      var cursor = event.target.result;
-      if(!cursor || !cursor.value) {
-        return;
-      }
-      var record = cursor.value;
-      console.log('opg ' + JSON.stringify(record, null, " "));
-    };
-    _dbHelper.newTxn(function(error, txn, stores) {
-      if (error) {
-        console.error(error);
-        return;
-      }
-      for (var i = 0, ls = stores.length; i < ls; i++) {
-        var request = stores[i].index('contactID')
-                               .openCursor(IDBKeyRange.only(conversation.contactID));
-        request.onsuccess = _updateConv;
-      }
-      txn.onerror = function(event) {
-        console.error(event.target.error.name);
-      };
-    }, 'readwrite', objectStore);
-  }
-
   var ConversationsDB = {
-    setDate: function(conversationItem) {
-      conversationItem.date = Date.now();
+    setDate: function(conversation) {
+      conversation.date = Date.now();
     },
-    add: function(conversation) {
-      return new Promise(function(resolve, reject) {
+    create: function(conversation) {
+      return new Promise(function (resolve, reject){
         ConversationsDB.setDate(conversation);
-        _dbHelper.addRecord(function(error, storedRecord) {
+        _dbHelper.addRecord(function (error, storedRecord) {
           if (error) {
             reject(error);
           } else {

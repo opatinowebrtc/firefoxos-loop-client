@@ -643,8 +643,8 @@
               Controller.updateConversationInfo('url', params.url);
               Controller.updateConversationInfo('incoming', false);
               Controller.updateConversationInfo('conversationPending', true);
-              Controller.updateConversationInfo('subject', params.subject &&
-                params.subject !== '' ? true : false);
+              //Controller.updateConversationInfo('subject', params.subject &&
+                //params.subject !== '' ? true : false);
               var p1 = ConversationsDB.add(Controller.conversationInfo);
               p1.then(function (){console.log('opg: saved conversation in db')});
             });
@@ -682,24 +682,33 @@
             if (params.type === 'call') {
               _onsharedurl();
             }            
-            Telemetry.updateReport('sendUrlByEmail');
-            var p0 = ConversationsDB.get(params.contactID);
+            console.log('opg: ' + JSON.stringify(params));
+            Telemetry.updateReport('sendUrlByEmail');            
+            Controller.updateConversationInfo('sharedVia', 'Email');
+            Controller.updateConversationInfo('url', params.url);
+            Controller.updateConversationInfo('incoming', false);
+            Controller.updateConversationInfo('conversationPending', true);
+            Controller.updateConversationInfo('email', params.email);
+            //Controller.updateConversationInfo('subject', params.subject &&
+              //params.subject !== '' ? true : false);
+            var p0 = ConversationsDB.get(params.email);
             p0.then((result) => {
               console.log('opg: antigua conversacion ' + 
                 JSON.stringify(Controller.conversationInfo, null, " "));
-              Controller.conversationInfo = result;
-              Controller.updateConversationInfo('sharedVia', 'SMS');
-              Controller.updateConversationInfo('url', params.url);
-              Controller.updateConversationInfo('incoming', false);
-              Controller.updateConversationInfo('conversationPending', true);
-              Controller.updateConversationInfo('subject', params.subject &&
-                params.subject !== '' ? true : false);
-              var p1 = ConversationsDB.add(Controller.conversationInfo);
-              p1.then(function (){console.log('opg: saved conversation in db')});
+              console.log('opg: el result es '+ JSON.stringify(result));
+              
+              var p1 = ConversationsDB.create(Controller.conversationInfo);
+              p1.then(function (result) {
+                console.log('opg ' + JSON.stringify(result));
+                console.log('opg: saved conversation in db');
+                p0 = ConversationsDB.get({key: params.email});
+                p0.then(function(result){
+                  console.log('opg: nueva conversacion ' + 
+                  JSON.stringify(result, null, " "));
+                });
+              });
             });
-            p0 = ConversationsDB.get(params.contactID);
-            p0.then(function(result){ console.log('opg: nueva conversacion ' + 
-              JSON.stringify(result, null, " "));});
+            
             onsuccess();
           },
           onerror
