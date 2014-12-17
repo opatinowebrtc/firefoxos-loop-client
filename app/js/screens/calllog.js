@@ -971,29 +971,30 @@
         }
         callTo(identities, callElement.dataset.subject, isVideo);
         console.log('opg: updating origin calllog');
-        var p0 = ConversationsDB.get(callElement.id);
-            p0.then(function(result) {
+        ConversationsDB.get(callElement.dataset.contactId).then(function(result) {
               console.log('opg: antigua conversacion ' + 
-                JSON.stringify(Controller.conversationInfo, null, " "));
-              if (result === undefined){               
-               Controller.updateConversationInfo('origin','Calllog');
-               Controller.updateConversationInfo('subject', callElement.dataset.subject &&
-                 callElement.dataset.subject !== '' ? true : false);
-               Controller.updateConversationInfo('incoming', false);
-               Controller.updateConversationInfo('sharedVia', 'none');
-               Controller.updateConversationInfo('url', 'none')
-               Controller.updateConversationInfo('conversationPending', true);
-               Controller.updateConversationInfo('contactID','E30F991CB');
-               Controller.updateConversationInfo('date', 42342959);
-              var p1 = ConversationsDB.add(Controller.conversationInfo);
-              p1.then(function (){console.log('opg: saved conversation in db')});
-            }
-            });
-        p0 = ConversationsDB.get(callElement.id);
-        p0.then(function(result){ console.log('opg: nueva conversacion ' + 
-          JSON.stringify(result, null, " "));});
-        var p1 = ConversationsDB.add(Controller.conversationInfo);
-        p1.then(function (){console.log('saved conversation in ConversationsDB')});
+              JSON.stringify(Controller.conversationInfo, null, " "));
+          if (result === undefined){   
+            Controller.conversationInfo = {};            
+            Controller.updateConversationInfo('origin','Calllog');
+            Controller.updateConversationInfo('subject', callElement.dataset.subject &&
+              callElement.dataset.subject !== '' ? true : false);
+            Controller.updateConversationInfo('incoming', false);
+            Controller.updateConversationInfo('sharedVia', 'unknown');
+            Controller.updateConversationInfo('url', 'none');
+            Controller.updateConversationInfo('conversationPending', true);
+            Controller.updateConversationInfo('contactID',callElement.dataset.contactId);
+            ConversationsDB.create(Controller.conversationInfo)
+              .then(function (){
+                console.log('opg: saved conversation in db');
+              });
+          }
+        });
+        ConversationsDB.get(callElement.id).then(function(result){
+          console.log('opg: nueva conversacion '+ JSON.stringify(result, null, " "));
+        });
+        ConversationsDB.create(Controller.conversationInfo).then(function (){
+          console.log('opg: saved conversation in ConversationsDB')});
         Telemetry.updateReport('callsFromCallLog');
       }
     );

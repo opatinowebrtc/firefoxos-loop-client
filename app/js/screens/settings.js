@@ -288,6 +288,12 @@
     },
 
     show: function s_show() {
+      ConversationsDB.get(Controller.conversationInfo.contactID).then(function(result) {
+        console.log('opg: ' + Controller.conversationInfo.contactID);
+        console.log('opg: Comprobando db ID' + JSON.stringify(result.contactID));
+        console.log('opg: Comprobando db' + JSON.stringify(result));
+
+      });
       if (!_settingsPanel) {
         return;
       }

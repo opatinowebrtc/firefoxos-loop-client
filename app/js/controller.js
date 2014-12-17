@@ -689,26 +689,13 @@
             Controller.updateConversationInfo('incoming', false);
             Controller.updateConversationInfo('conversationPending', true);
             Controller.updateConversationInfo('email', params.email);
-            //Controller.updateConversationInfo('subject', params.subject &&
-              //params.subject !== '' ? true : false);
-            var p0 = ConversationsDB.get(params.email);
-            p0.then((result) => {
-              console.log('opg: antigua conversacion ' + 
-                JSON.stringify(Controller.conversationInfo, null, " "));
-              console.log('opg: el result es '+ JSON.stringify(result));
-              
-              var p1 = ConversationsDB.create(Controller.conversationInfo);
-              p1.then(function (result) {
-                console.log('opg ' + JSON.stringify(result));
-                console.log('opg: saved conversation in db');
-                p0 = ConversationsDB.get({key: params.email});
-                p0.then(function(result){
-                  console.log('opg: nueva conversacion ' + 
-                  JSON.stringify(result, null, " "));
-                });
-              });
-            });
-            
+            console.log("opg: vamos a meter: " + JSON.stringify(Controller.conversationInfo));
+            ConversationsDB.create(Controller.conversationInfo)
+              .then(ConversationsDB.get(Controller.conversationInfo.contactID))
+              .then(function(result){
+                console.log('opg: conversacion guardada ' + 
+                JSON.stringify(result));
+              });                  
             onsuccess();
           },
           onerror
@@ -775,6 +762,38 @@
         default:
           alert(_(reason));
           break;
+      }
+    },
+    sendConversationToTelemetry: function(publisher) {
+      // window.addEventListener('leaveCallEvent', function (event) {
+      //   ConversationsDB.get(Controller.conversationInfo.contactID)
+      //   .then( function (result) {
+      //     if (result && result !== undefined){
+      //       debug && console.log('Retrieved conversation from DB');
+      //     }
+      //     else {
+      //       var error = {message: 'conversation not found'}
+      //       return error;
+      //     }
+      //     sendConversationToTelemetry(event.detail.publisher);
+      //   }
+      // });
+      // if when leaving a call we had a publisher, it means that the 
+      // call has been successful (A communication has been established)
+      if(publisher && publisher !== undefined) {
+        var convInfo = { 
+          established: true,
+          subject: Controller.conversationInfo.subject,
+          origin: Controller.conversationInfo.origin;
+          url: Controller.conversationInfo.url === 'none' ? false : true,
+          incoming: Controller.conversationInfo.incoming
+        };
+        Telemetry.updateReport('conversation', JSON.stringify(convInfo));
+        ConversationsDB.delete(Controller.conversationInfo.contactID)
+          .this(function noop() {}, function (error) {
+            debug && console.log('error deleting conversation from DB : '
+              + JSON.stringify(error));
+        })
       }
     },
 

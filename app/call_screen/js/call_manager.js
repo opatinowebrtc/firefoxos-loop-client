@@ -720,7 +720,12 @@
 
         ControllerCommunications.send(message);
       }
-
+      // event dispatched to remove the conversation object from
+      // ConversationsDB
+      var event = new CustomEvent('leaveCallEvent', {
+        detail: { publisher: _publisher }
+      });
+      window.dispatchEvent(event);
       if (_publisher && _publisher.answerSDP) {
         var description = _publisher.answerSDP;
         if (description.indexOf(H264_STRING_126) != -1 ||
@@ -738,7 +743,7 @@
           _audioCodecName = 'unknown';
         }
         debug && console.log("Audio Codec used: " + _audioCodecName);
-      }
+      }      
       // Send hangout message to Controller
       sendParams('hangout');
 

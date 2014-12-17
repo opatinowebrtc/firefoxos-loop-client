@@ -5,47 +5,49 @@
 		name: 'callInfo',
 		version: 1,
 		maxNumberOfRecords: 200,
-	    numOfRecordsToDelete: 50
-	  }, {
-	    'infoCalls': {
-	      primary: 'email',
-	      indexes: [{
-	        name: 'date',
-	        field: 'date',
-	        params: {
-	          multientry: true
-	        }
-	      }, {
-	        name: 'url',
-	        field: 'url',
-	        params: {
-	          multientry: true
-	        }
-	      }],
-	      fields: [
-	        'date',
-	        'url',
-          'email',
-	        'origin',
-	        'sharedVia',
-	        'conversationPending',
-          'incoming',
-          'subject'
-        ]
-	    },
+    numOfRecordsToDelete: 50
+  }, {
+    'infoCalls': {
+      primary: 'contactID',
+      indexes: [{
+        name: 'date_aud',
+        field: 'date_aud',
+        params: {
+          multientry: true
+        }
+      }, {
+        name: 'url',
+        field: 'url',
+        params: {
+          multientry: true
+        }
+      }],
+      fields: [
+        'date_aud',
+        'url',
+        'email',
+        'origin',
+        'sharedVia',
+        'conversationPending',
+        'incoming',
+        'subject',
+        'contactID'
+      ]
+    },
 	});
 
   var ConversationsDB = {
     setDate: function(conversation) {
-      conversation.date = Date.now();
+      conversation.date_aud = Date.now();
     },
     create: function(conversation) {
+      var self = this;
       return new Promise(function (resolve, reject){
         ConversationsDB.setDate(conversation);
         _dbHelper.addRecord(function (error, storedRecord) {
           if (error) {
             reject(error);
-          } else {
+          } else {            
             resolve(storedRecord);
           }
         }, _callStore, conversation);
