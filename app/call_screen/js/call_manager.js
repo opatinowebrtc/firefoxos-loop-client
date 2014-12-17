@@ -321,6 +321,23 @@
 
       _publishVideo = _subscribeToVideo = _isVideoCall;
 
+      // this event is used when leaving a call. Then we look for the 
+      // current conversation and if it's in our DB use its information
+      // to create a conversation's telemetry item.
+      window.addEventListener('leaveCallEvent', function (event) {
+        ConversationsDB.get(Controller.conversationInfo.contactID)
+        .then( function (result) {
+          if (result && result !== undefined){
+            debug && console.log('Retrieved conversation from DB');
+          }
+          else {
+            var error = {message: 'conversation not found'}
+            return error;
+          }
+          sendConversationToTelemetry(event.detail.publisher);
+        }
+      });
+
       _usedCamera = _isVideoCall ?
         (frontCamera && frontCamera != 'false') ? 'front' : 'back' :
         'none';
@@ -726,6 +743,7 @@
         detail: { publisher: _publisher }
       });
       window.dispatchEvent(event);
+      
       if (_publisher && _publisher.answerSDP) {
         var description = _publisher.answerSDP;
         if (description.indexOf(H264_STRING_126) != -1 ||

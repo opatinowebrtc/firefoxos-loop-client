@@ -173,7 +173,7 @@
       if (!account || !account.id || !account.id.type) {
         return;
       }
-
+      Controller.updateConversationInfo('incoming', isIncoming);
       var direction = isIncoming ? 'incoming' : 'outgoing';
       var type = TELEMETRY_DICTIONARY[account.id.type];
       type && Telemetry.updateReport(direction + 'CallsWith' + type);

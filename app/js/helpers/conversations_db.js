@@ -5,49 +5,73 @@
 		name: 'callInfo',
 		version: 1,
 		maxNumberOfRecords: 200,
-    numOfRecordsToDelete: 50
-  }, {
-    'infoCalls': {
-      primary: 'contactID',
-      indexes: [{
-        name: 'date_aud',
-        field: 'date_aud',
-        params: {
-          multientry: true
-        }
-      }, {
-        name: 'url',
-        field: 'url',
-        params: {
-          multientry: true
-        }
-      }],
-      fields: [
-        'date_aud',
-        'url',
-        'email',
-        'origin',
-        'sharedVia',
-        'conversationPending',
-        'incoming',
-        'subject',
-        'contactID'
-      ]
-    },
+	    numOfRecordsToDelete: 50
+	  }, {
+	    'infoCalls': {
+	      primary: 'contactID',
+	      indexes: [{
+	        name: 'date_aud',
+	        field: 'date_aud',
+	        params: {
+	          multientry: true
+	        }
+	      }, {
+	        name: 'url',
+	        field: 'url',
+	        params: {
+	          multientry: true
+	        }
+	      }],
+	      fields: [
+	        'date_aud',
+	        'url',
+          'contactID',
+	        'origin',
+	        'sharedVia',
+	        'conversationPending',
+          'incoming',
+          'subject'
+        ]
+	    },
 	});
 
+  function _updateConversation(conversation) {
+    var objectStore = _callStore;
+    var _updateConv = function(event) {
+      var cursor = event.target.result;
+      if(!cursor || !cursor.value) {
+        return;
+      }
+      var record = cursor.value;
+      console.log('opg ' + JSON.stringify(record, null, " "));
+    };
+    _dbHelper.newTxn(function(error, txn, stores) {
+      if (error) {
+        console.error(error);
+        return;
+      }
+      for (var i = 0, ls = stores.length; i < ls; i++) {
+        var request = stores[i].index('contactID')
+                               .openCursor(IDBKeyRange.only(conversation.contactID));
+        request.onsuccess = _updateConv;
+      }
+      txn.onerror = function(event) {
+        console.error(event.target.error.name);
+      };
+    }, 'readwrite', objectStore);
+  }
+
   var ConversationsDB = {
-    setDate: function(conversation) {
-      conversation.date_aud = Date.now();
+    setDate: function(conversationItem) {
+      conversationItem.date_aud = Date.now();
     },
-    create: function(conversation) {
-      var self = this;
-      return new Promise(function (resolve, reject){
+    add: function(conversation) {
+      return new Promise(function(resolve, reject) {
         ConversationsDB.setDate(conversation);
-        _dbHelper.addRecord(function (error, storedRecord) {
+        _dbHelper.addRecord(function(error, storedRecord) {
           if (error) {
             reject(error);
-          } else {            
+          } else {
             resolve(storedRecord);
           }
         }, _callStore, conversation);

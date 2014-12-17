@@ -78,6 +78,7 @@
           isVideoCall: activityParams.video,
           subject: activityParams.subject
         }, () => {
+          Controller.updateConversationInfo('origin', 'address_book');
           Telemetry.updateReport('callsFromContactDetails');
         });
         break;
