@@ -201,7 +201,6 @@
                                  'front' : 'back');
           Telemetry.updateReport('usedCamera',
                                  callscreenParams.usedCamera);
-                                 callscreenParams.defaultCamera);
           if (_params.subject && _params.subject != '') {
             Telemetry.updateReport('conversationSubject');
           }
@@ -419,6 +418,8 @@
         function onsuccess(callsInfo) {
           debug && console.log('Version ' + params.version);
           debug && console.log('Calls from server ' + JSON.stringify(callsInfo));
+
+          console.log('OPG: Calls from server ' + JSON.stringify(callsInfo));
 
           var callsToReject = [];
           var call;

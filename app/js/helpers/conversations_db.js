@@ -8,23 +8,24 @@
 	    numOfRecordsToDelete: 50
 	  }, {
 	    'infoCalls': {
-	      primary: 'contactID',
+	      primary: 'url',
 	      indexes: [{
-	        name: 'date_aud',
-	        field: 'date_aud',
+	        name: 'date',
+	        field: 'date',
 	        params: {
 	          multientry: true
 	        }
 	      }, {
-	        name: 'url',
-	        field: 'url',
+	        name: 'email',
+	        field: 'email',
 	        params: {
 	          multientry: true
 	        }
 	      }],
 	      fields: [
-	        'date_aud',
+	        'date',
 	        'url',
+          'email',
           'contactID',
 	        'origin',
 	        'sharedVia',
@@ -88,7 +89,7 @@
           } else {
             resolve();
           }
-        }, _roomsStore, { key: token }, {
+        }, _callStore, { key: token }, {
           date_aud: conversation.date_aud,
           url: conversation.url,
           origin: conversation.origin,

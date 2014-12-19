@@ -418,6 +418,9 @@
      */
     signUp: function signUp(credentials, onsuccess, onerror) {
       NotificationChannels.listen(_channels).then(function(endpoints) {
+
+        console.log('OPG: ENDPOINTS ' + JSON.stringify(endpoints));
+
         // Register the peer.
         ClientRequestHelper.signUp(
           // TODO: We need to pass in the credentials once the prod server

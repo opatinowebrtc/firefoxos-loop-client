@@ -238,6 +238,8 @@
      * @param {Numeric} version Simple push notification id (version).
      */
     onConversationEvent: function(version) {
+
+      console.log('OPG: Version ' + version);
       _getCallScreenManager().then((csm) => {
         csm.launch(
           'incoming',
@@ -455,7 +457,7 @@
       });
 
       activity.onsuccess = function() {
-        console.log('opg: call from contact picker')
+        console.log('opg: call from contact picker');
         Controller.updateConversationInfo('origin', 'contact_picker');
         Controller.updateConversationInfo('contactID', activity.result.id);
         onsuccess(activity.result);
@@ -497,6 +499,7 @@
                 subject: conversationParams.subject
               }
             );
+            Controller.updateConversationInfo('subject', conversationParams.subject);
             _oncall();
           });
           typeof done === 'function' && done();
@@ -634,23 +637,30 @@
             console.log('opg: setting url to SMS');
             
             Telemetry.updateReport('sendUrlBySMS');
-            var p0 = ConversationsDB.get(params.contactID);
-            p0.then((result) => {
-              console.log('opg: antigua conversacion ' + 
-                JSON.stringify(Controller.conversationInfo, null, " "));
-              Controller.conversationInfo = result;
-              Controller.updateConversationInfo('sharedVia', 'SMS');
-              Controller.updateConversationInfo('url', params.url);
-              Controller.updateConversationInfo('incoming', false);
-              Controller.updateConversationInfo('conversationPending', true);
-              //Controller.updateConversationInfo('subject', params.subject &&
-                //params.subject !== '' ? true : false);
-              var p1 = ConversationsDB.add(Controller.conversationInfo);
-              p1.then(function (){console.log('opg: saved conversation in db')});
-            });
-            p0 = ConversationsDB.get(params.contactID);
-            p0.then(function(result){ console.log('opg: nueva conversacion ' + 
-              JSON.stringify(result, null, " "));});
+            // update conversation object with the available info
+            Controller.conversationInfo = result;
+            Controller.updateConversationInfo('sharedVia', 'SMS');
+            Controller.updateConversationInfo('url', params.url);
+            Controller.updateConversationInfo('incoming', false);
+            Controller.updateConversationInfo('conversationPending', true);
+            // ConversationsDB.get(Controller.conversationInfo.url)
+            //   .then(result => {
+            //     if (result === undefined || result ===null){
+            //       ConversationsDB.add(Controller.conversationinfo).
+            //         then(result => {
+            //           debug && console.log('opg: conversation successfuly added ' +
+            //             JSON.stringify(result));
+            //         });
+            //     } else {
+            //       ConversationsDB.update(Controller.conversationInfo.contactID,
+            //         Controller.conversationInfo).then(() => {
+            //           debug && console.log('opg: conversation successfuly updated');
+            //         });
+            //     }
+            //   });
+            // current conversationInfo is not needed anymore
+            // I'm clearing for next conversation
+            resetConversationInfo();
             onsuccess();
           },
           onerror
@@ -683,19 +693,31 @@
               _onsharedurl();
             }            
             console.log('opg: ' + JSON.stringify(params));
-            Telemetry.updateReport('sendUrlByEmail');            
+            Telemetry.updateReport('sendUrlByEmail');  
+            // update conversationinfo object 
             Controller.updateConversationInfo('sharedVia', 'Email');
             Controller.updateConversationInfo('url', params.url);
             Controller.updateConversationInfo('incoming', false);
             Controller.updateConversationInfo('conversationPending', true);
-            Controller.updateConversationInfo('email', params.email);
-            console.log("opg: vamos a meter: " + JSON.stringify(Controller.conversationInfo));
-            ConversationsDB.create(Controller.conversationInfo)
-              .then(ConversationsDB.get(Controller.conversationInfo.contactID))
-              .then(function(result){
-                console.log('opg: conversacion guardada ' + 
-                JSON.stringify(result));
-              });                  
+            // save in conversation's database
+            // ConversationsDB.get(Controller.conversationInfo.url)
+            //   .then(result => {
+            //     if (result === undefined || result ===null){
+            //       ConversationsDB.add(Controller.conversationinfo).
+            //         then(result => {
+            //           debug && console.log('opg: conversation successfuly added ' +
+            //             JSON.stringify(result));
+            //         });
+            //     } else {
+            //       ConversationsDB.update(Controller.conversationInfo.url,
+            //         Controller.conversationInfo).then(() => {
+            //           debug && console.log('opg: conversation successfuly updated');
+            //         });
+            //     }
+            //   });
+            // current conversationInfo is not needed anymore
+            // I'm clearing for next conversation
+            // resetConversationInfo();                
             onsuccess();
           },
           onerror
@@ -784,16 +806,16 @@
         var convInfo = { 
           established: true,
           subject: Controller.conversationInfo.subject,
-          origin: Controller.conversationInfo.origin;
+          origin: Controller.conversationInfo.origin,
           url: Controller.conversationInfo.url === 'none' ? false : true,
           incoming: Controller.conversationInfo.incoming
         };
-        Telemetry.updateReport('conversation', JSON.stringify(convInfo));
-        ConversationsDB.delete(Controller.conversationInfo.contactID)
-          .this(function noop() {}, function (error) {
-            debug && console.log('error deleting conversation from DB : '
-              + JSON.stringify(error));
-        })
+        // Telemetry.updateReport('conversation', JSON.stringify(convInfo));
+        // ConversationsDB.delete(Controller.conversationInfo.contactID)
+        //   .this(function noop() {}, function (error) {
+        //     debug && console.log('error deleting conversation from DB : '
+        //       + JSON.stringify(error));
+        // });
       }
     },
 
