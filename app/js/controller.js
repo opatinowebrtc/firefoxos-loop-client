@@ -307,6 +307,20 @@
                     participant.displayName,
                     participant.account
                   );
+                  RoomsDB.get(room.roomToken).then(function(roomdb){
+                    if (roomdb.otherJoined === undefined) {
+                      roomdb.otherJoined = 1;
+                    } else {
+                      roomdb.otherJoined +=1;
+                    }
+                    RoomsDB.update(roomdb).then(function (){
+                      debug && console.log('otherJoined updated');
+                    }, function () {
+                      console.error('could not update otherjoined in this room');
+                    });
+                  }, function(){
+                    console.error('could not find room in local DB!');
+                  });
                   _registerOtherJoinEvt(room.roomToken,
                                         participant,
                                         lastStateRoom);
@@ -317,6 +331,20 @@
 
             room.participants.forEach((participant) => {
               if (participant.account !== Controller.identity) {
+                RoomsDB.get(room.roomToken).then(function(roomdb){
+                    if (roomdb.otherJoined === undefined) {
+                      roomdb.otherJoined = 1;
+                    } else {
+                      roomdb.otherJoined +=1;
+                    }
+                    RoomsDB.update(roomdb).then(function (){
+                      debug && console.log('otherJoined updated');
+                    }, function () {
+                      console.error('could not update otherjoined in this room');
+                    });
+                  }, function(){
+                    console.error('could not find room in local DB!');
+                  });
                 _registerOtherJoinEvt(room.roomToken,
                                       participant,
                                       lastStateRoom);
@@ -388,7 +416,7 @@
       showDetail && Loader.getRoomDetail().then((RoomDetail) => {
         RoomDetail.update(room);
       });
-      CallLog.updateRoom(room);
+      CallLog.updateRooms([room]);
     },
 
     onRoomShared: function(room, contact, identity) {
@@ -401,7 +429,7 @@
         });
       });
       RoomsDB.addLastSharedPerson(room, contact, identity);
-      CallLog.updateRoom(room);
+      CallLog.updateRooms([room]);
     },
 
     onRoomDeleted: function(token) {
