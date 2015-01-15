@@ -71,6 +71,7 @@
     outgoingCallsWithFxA: 0,
     incomingCallsWithMobileId: 0,
     incomingCallsWithFxA: 0,
+    receivedRooms: 0,
     // The duration of the calls.
     callsDuration: [],
     // The network type used for the call.
@@ -108,7 +109,7 @@
 
       DEBUG && console.log('Scheduled next report in ' + timeout + 'ms');
 
-      setInterval(function() {
+      setTimeout(function() {
         RoomsDB.getAll().then(function(roomsCursor) {
           if (!roomsCursor) {
             console.error('No cursor!');
@@ -119,6 +120,9 @@
             var item = event.target.result
             if (item) {
               var room = item.value;
+              if(room.roomOwner !== Controller.identity) {
+                self.updateReport('receivedRooms');
+              }
               Object.keys(room).forEach(function(name) {
                 self.updateReport(name,room[name]);
               });
@@ -140,14 +144,14 @@
           if (Array.isArray(report)) {
             report = report[0] || null;
           }
- 
-          // self.transmit(report, _getReportUrl(report), THROTTLE_DELAY,
-          //   function() {
-          //     DEBUG && console.log('Setting ' + LAST_REPORT);
-          //     asyncStorage.setItem(LAST_REPORT, Date.now());
-          //   });
+
+          self.transmit(report, _getReportUrl(report), THROTTLE_DELAY,
+            function() {
+              DEBUG && console.log('Setting ' + LAST_REPORT);
+              asyncStorage.setItem(LAST_REPORT, Date.now());
+            });
         });
-      }, 15000);
+      }, timeout);
     });
   }
 
