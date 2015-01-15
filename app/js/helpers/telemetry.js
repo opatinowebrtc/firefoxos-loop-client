@@ -81,7 +81,8 @@
     defaultRoomCamera: [],
     roomCamera: [],
     SMSNotification: {},
-    emailNotification: {}
+    emailNotification: {},
+    timesRoomRenamed: {}
   };
 
   function Telemetry() {
@@ -108,7 +109,7 @@
 
       DEBUG && console.log('Scheduled next report in ' + timeout + 'ms');
 
-      setInterval(function() {
+      setTimeout(function() {
         RoomsDB.getAll().then(function(roomsCursor) {
           if (!roomsCursor) {
             console.error('No cursor!');
@@ -140,14 +141,14 @@
           if (Array.isArray(report)) {
             report = report[0] || null;
           }
- 
-          // self.transmit(report, _getReportUrl(report), THROTTLE_DELAY,
-          //   function() {
-          //     DEBUG && console.log('Setting ' + LAST_REPORT);
-          //     asyncStorage.setItem(LAST_REPORT, Date.now());
-          //   });
+
+          self.transmit(report, _getReportUrl(report), THROTTLE_DELAY,
+            function() {
+              DEBUG && console.log('Setting ' + LAST_REPORT);
+              asyncStorage.setItem(LAST_REPORT, Date.now());
+            });
         });
-      }, 15000);
+      }, timeout);
     });
   }
 

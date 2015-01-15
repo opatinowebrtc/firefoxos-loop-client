@@ -157,6 +157,12 @@
 
   function updateRoom() {
     var name = roomNameInput.value.trim();
+    if (room.timesRoomRenamed === undefined) {
+      room.timesRoomRenamed = 1;
+    } else {
+      room.timesRoomRenamed++;
+    }
+    Telemetry.updateReport('timesRoomRenamed', room.timesRoomRenamed);
     return Rooms.update(room.roomToken, {
       roomName: name,
       expiresIn: CONFIG.expiresIn

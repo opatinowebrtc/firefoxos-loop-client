@@ -109,7 +109,8 @@
         'localCtime',
         'user',
         'SMSNotification',
-        'emailNotification'
+        'emailNotification',
+        'timesRoomRenamed'
       ]},
 
     'roomEvents': {
