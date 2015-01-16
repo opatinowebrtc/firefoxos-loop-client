@@ -81,7 +81,8 @@
     defaultRoomCamera: [],
     roomCamera: [],
     SMSNotification: {},
-    emailNotification: {}
+    emailNotification: {},
+    goBackground: {}
   };
 
   function Telemetry() {
