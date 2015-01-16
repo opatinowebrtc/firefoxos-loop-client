@@ -162,7 +162,11 @@
     } else {
       room.timesRoomRenamed++;
     }
-    Telemetry.updateReport('timesRoomRenamed', room.timesRoomRenamed);
+    RoomsDB.update(room.roomToken).then(function (){
+      debug && console.log('timesRoomRenamed successfully updated');
+    }, function () {
+      console.error('could not update timesRoomRenamed');
+    });
     return Rooms.update(room.roomToken, {
       roomName: name,
       expiresIn: CONFIG.expiresIn
